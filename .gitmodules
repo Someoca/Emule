@@ -1,0 +1,6 @@
+[submodule "upstream/EmuFive"]
+	path = upstream/EmuFive
+	url = https://github.com/blue0x1/EmuFive.git
+[submodule "upstream/PS4-Multiboot"]
+	path = upstream/PS4-Multiboot
+	url = https://github.com/blue0x1/ps4-multiboot.git
