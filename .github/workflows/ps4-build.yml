@@ -48,6 +48,13 @@ jobs:
           bash -n upstream/EmuFive/scripts/build-rootfs.sh
           bash -n upstream/PS4-Multiboot/scripts/build-mesa.sh
 
+      - name: Install root filesystem build dependencies
+        if: github.event_name == 'workflow_dispatch' && inputs.full_pipeline
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y python3-pil
+          python3 -c "from PIL import Image"
+
       - name: Build KytyPS5 for the PS4 CPU
         if: github.event_name != 'workflow_dispatch' || inputs.full_pipeline != true
         run: bash upstream/EmuFive/scripts/build-kyty.sh
