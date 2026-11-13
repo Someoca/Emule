@@ -6,6 +6,12 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      full_pipeline:
+        description: Build PS4 Mesa, KytyPS5, and the EmuFive root filesystem (long-running)
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -13,7 +19,7 @@ permissions:
 jobs:
   build-kyty:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 180
     steps:
       - name: Check out pinned upstreams
         uses: actions/checkout@v7.0.1
@@ -43,7 +49,12 @@ jobs:
           bash -n upstream/PS4-Multiboot/scripts/build-mesa.sh
 
       - name: Build KytyPS5 for the PS4 CPU
+        if: github.event_name != 'workflow_dispatch' || inputs.full_pipeline != true
         run: bash upstream/EmuFive/scripts/build-kyty.sh
+
+      - name: Build the complete PS4 system image
+        if: github.event_name == 'workflow_dispatch' && inputs.full_pipeline == true
+        run: bash ./scripts/build.sh
 
       - name: Verify the PS4 package
         shell: bash
@@ -56,3 +67,15 @@ jobs:
           grep -Fxq "kytyps5/LICENSE" <<< "$contents"
           version="$(tar -xOJf "$archive" kytyps5/VERSION)"
           grep -Fq "built for -march=btver2" <<< "$version"
+
+      - name: Verify the EmuFive root filesystem
+        if: github.event_name == 'workflow_dispatch' && inputs.full_pipeline == true
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive=upstream/EmuFive/out/ps5-ps4-rootfs.tar.xz
+          test -s "$archive"
+          contents="$(tar -tJf "$archive")"
+          grep -Fxq "./etc/ps4-distro/name" <<< "$contents"
+          grep -Fxq "./opt/ps4-mesa/.bundled" <<< "$contents"
+          grep -Fxq "./opt/kytyps5/kyty_emulator" <<< "$contents"
