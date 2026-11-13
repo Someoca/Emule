@@ -59,6 +59,10 @@ O script compila o Mesa para PS4 pelo PS4 Multiboot, compila o KytyPS5 para
 `upstream/EmuFive/out/ps5-ps4-rootfs.tar.xz`. A compilação e os testes no PS4
 ainda não foram validados neste projeto.
 
+O GitHub Actions verifica os commits fixados, os avisos de licença e a sintaxe
+dos scripts; também compila o KytyPS5 para `btver2` e confere o pacote gerado.
+Esse CI não gera a imagem raiz nem substitui testes em um PS4.
+
 ## Projetos de referência e licenças
 
 | Projeto | Papel nesta pesquisa | Licença informada |

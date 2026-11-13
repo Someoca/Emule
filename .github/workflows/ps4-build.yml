@@ -1,0 +1,58 @@
+# Copyright (C) 2026 Someoca
+# SPDX-License-Identifier: GPL-2.0-only
+name: PS4 Linux integration
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-kyty:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out pinned upstreams
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Verify source pins and GPL-2.0 notices
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C upstream/EmuFive rev-parse HEAD)" = "f1df0bbc96f9dad32734ff5c86a295be9f151ee0"
+          test "$(git -C upstream/PS4-Multiboot rev-parse HEAD)" = "3e207c2affef5a3afe04c9461b3846f40480790c"
+          expected_license_blob=9efa6fbc962836e243e20f7f23db062e2c077d28
+          for file in LICENSE upstream/EmuFive/LICENSE upstream/PS4-Multiboot/LICENSE; do
+            test "$(git hash-object "$file")" = "$expected_license_blob"
+          done
+          grep -Fq "SPDX-License-Identifier: GPL-2.0-only" README.md
+          grep -Fq "SPDX-License-Identifier: GPL-2.0-only" scripts/build.sh
+
+      - name: Check shell syntax
+        run: |
+          bash -n scripts/build.sh
+          bash -n upstream/EmuFive/scripts/build-kyty.sh
+          bash -n upstream/EmuFive/scripts/build-rootfs.sh
+          bash -n upstream/PS4-Multiboot/scripts/build-mesa.sh
+
+      - name: Build KytyPS5 for the PS4 CPU
+        run: bash upstream/EmuFive/scripts/build-kyty.sh
+
+      - name: Verify the PS4 package
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive=upstream/EmuFive/out/kytyps5-ps4.tar.xz
+          test -s "$archive"
+          contents="$(tar -tJf "$archive")"
+          grep -Fxq "kytyps5/kyty_emulator" <<< "$contents"
+          grep -Fxq "kytyps5/LICENSE" <<< "$contents"
+          version="$(tar -xOJf "$archive" kytyps5/VERSION)"
+          grep -Fq "built for -march=btver2" <<< "$version"
