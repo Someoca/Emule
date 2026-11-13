@@ -47,7 +47,8 @@ licenças upstream:
   `589bd14a9b8934a85e951d1aaa8112a05d62354c` e aplica os patches do próprio
   EmuFive para a CPU do PS4.
 
-Inicialize os submódulos e compile em Linux com Bash, Git, Make e Docker:
+Inicialize os submódulos e compile em Linux com Bash, Git, Make, Docker e
+Python 3 com Pillow (por exemplo, o pacote `python3-pil`):
 
 ```bash
 git submodule update --init --recursive
