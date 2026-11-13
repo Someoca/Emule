@@ -15,7 +15,8 @@ Este repositório ainda não implementa emulação ou interface próprias. O Emu
 relata executar alguns jogos de PS5 em um PS4 Pro; este projeto ainda não
 verificou esses resultados localmente. Os repositórios upstream estão ligados
 como submódulos em revisões fixas; a integração não altera nem copia os arquivos
-deles. Esta etapa ainda não validou uma compilação ou execução em hardware PS4.
+deles. O pipeline completo já compilou e empacotou a imagem no GitHub Actions;
+a inicialização e a execução em hardware PS4 ainda não foram validadas.
 
 ## Abordagem técnica
 
@@ -47,7 +48,8 @@ licenças upstream:
   `589bd14a9b8934a85e951d1aaa8112a05d62354c` e aplica os patches do próprio
   EmuFive para a CPU do PS4.
 
-Inicialize os submódulos e compile em Linux com Bash, Git, Make e Docker:
+Inicialize os submódulos e compile em Linux com Bash, Git, Make, Docker e
+Python 3 com Pillow (por exemplo, o pacote `python3-pil`):
 
 ```bash
 git submodule update --init --recursive
@@ -56,8 +58,8 @@ bash ./scripts/build.sh
 
 O script compila o Mesa para PS4 pelo PS4 Multiboot, compila o KytyPS5 para
 `btver2` e gera a imagem raiz do EmuFive em
-`upstream/EmuFive/out/ps5-ps4-rootfs.tar.xz`. A compilação e os testes no PS4
-ainda não foram validados neste projeto.
+`upstream/EmuFive/out/ps5-ps4-rootfs.tar.xz`. A geração da imagem foi validada
+no CI, mas os testes no PS4 ainda estão pendentes.
 
 Em pushes e pull requests, o GitHub Actions verifica os commits fixados, os
 avisos de licença e a sintaxe dos scripts; também compila o KytyPS5 para
@@ -67,6 +69,14 @@ compila Mesa, KytyPS5 e a imagem raiz, e confere arquivos essenciais nos
 pacotes. Essa execução pode levar até 180 minutos; os artefatos não são
 publicados nem retidos após o job. Mesmo um build completo no CI não valida a
 inicialização nem a compatibilidade em um PS4 físico.
+
+Na [execução completa validada](https://github.com/Someoca/Emule/actions/runs/43406776914),
+o commit `5775c40a572d4d718cde42df4033a4882c121c00` concluiu o job em
+24min38s, gerando os pacotes Mesa (45 MiB), KytyPS5 (7,5 MiB) e rootfs
+(367 MiB), com tamanhos aproximados reportados pelo build. Pins, licenças,
+sintaxe e conteúdo essencial dos pacotes passaram. A imagem não foi retida.
+Os fontes upstream estão fixados, mas imagens Docker e pacotes Debian não
+estão congelados; builds futuros não têm garantia de identidade byte a byte.
 
 ## Projetos de referência e licenças
 
